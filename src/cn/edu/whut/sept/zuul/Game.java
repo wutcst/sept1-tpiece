@@ -13,11 +13,15 @@
  */
 package cn.edu.whut.sept.zuul;
 
+import java.util.Random;
+
 public class Game
 {
     private Parser parser;
     private Room currentRoom;
-
+    private String backdirection=null;//返回方向
+    private String backstack[]=new String[100];//返回方向栈
+    private int backnum=0;//返回方向的数量
     /**
      * 创建游戏并初始化内部数据和解析器.
      */
@@ -32,14 +36,15 @@ public class Game
      */
     private void createRooms()
     {
-        Room outside, theater, pub, lab, office;
+        Room outside, theater, pub, lab, office,auxiliary;
 
         // create the rooms
-        outside = new Room("outside the main entrance of the university");
-        theater = new Room("in a lecture theater");
-        pub = new Room("in the campus pub");
-        lab = new Room("in a computing lab");
-        office = new Room("in the computing admin office");
+        outside = new Room("outside the main entrance of the university",0);
+        theater = new Room("in a lecture theater",2);
+        pub = new Room("in the campus pub",2);
+        lab = new Room("in a computing lab",5);
+        office = new Room("in the computing admin office",4);
+        auxiliary = new Room("in the auxiliary room",3);//辅助房间。随机传送
 
         // initialise room exits
         outside.setExit("east", theater);
@@ -54,6 +59,9 @@ public class Game
         lab.setExit("east", office);
 
         office.setExit("west", lab);
+        office.setExit("south",auxiliary);
+
+        auxiliary.setExit("north",office);
 
         currentRoom = outside;  // start game outside
     }
@@ -104,6 +112,7 @@ public class Game
         }
 
         String commandWord = command.getCommandWord();
+        /**
         if (commandWord.equals("help")) {
             printHelp();
         }
@@ -112,6 +121,24 @@ public class Game
         }
         else if (commandWord.equals("quit")) {
             wantToQuit = quit(command);
+        }
+         */
+        switch (commandWord){
+            case "help":
+                printHelp();
+                break;
+            case "go":
+                goRoom(command);
+                break;
+            case "quit":
+                wantToQuit = quit(command);
+                break;
+            case "back":
+                goback();//扩充
+                break;
+            case "look":
+                lookRoom();//扩充
+                break;
         }
         // else command not recognised.
         return wantToQuit;
@@ -152,12 +179,89 @@ public class Game
         if (nextRoom == null) {
             System.out.println("There is no door!");
         }
+        else if(nextRoom.getShortDescription().equals("in the auxiliary room")){
+            int num=(int)(Math.random()*50)+1;
+            currentRoom = nextRoom;
+            System.out.println(currentRoom.getLongDescription());
+            for(int i=0;i<num;i++){
+                int rdirection=new Random().nextInt(4);
+                switch (rdirection){
+                    case 0:
+                        direction="east";
+                        break;
+                    case 1:
+                        direction="south";
+                        break;
+                    case 2:
+                        direction="west";
+                        break;
+                    case 3:
+                        direction="north";
+                        break;
+                }
+                nextRoom = currentRoom.getExit(direction);
+                if(nextRoom==null){}
+                else{
+                    currentRoom = nextRoom;
+                }
+            }
+            if(currentRoom.getShortDescription().equals("in the auxiliary room")){
+                nextRoom = currentRoom.getExit("north");
+                currentRoom = nextRoom;
+            }
+            else{
+                System.out.println(currentRoom.getLongDescription());
+            }
+        }
         else {
+            switch(direction){
+                case "east":
+                    backdirection="west";
+                    break;
+                case "west":
+                    backdirection="east";
+                    break;
+                case "south":
+                    backdirection="north";
+                    break;
+                case "north":
+                    backdirection="south";
+                    break;
+            }
+            backstack[backnum++]=backdirection;/////////
             currentRoom = nextRoom;
             System.out.println(currentRoom.getLongDescription());
         }
     }
 
+    /**
+     * 执行back命令，返回上一个房间
+     */
+    private void goback()
+    {
+        if(backnum>0){
+            backdirection=backstack[--backnum];
+            Room nextRoom = currentRoom.getExit(backdirection);
+            if(nextRoom==null){
+                System.out.println("back is null");
+            }
+            else{
+                currentRoom = nextRoom;
+                System.out.println(currentRoom.getLongDescription());
+            }
+        }
+        else{
+            System.out.println("back is null");
+        }
+    }
+
+    /**
+     * 执行look命令，查看当前房间内的物品描述和重量
+     */
+    private void lookRoom()
+    {
+        System.out.println(currentRoom.getweight());
+    }
     /**
      * 执行Quit指令，用户退出游戏。如果用户在命令中输入了其他参数，则进一步询问用户是否真的退出.
      * @return 如果游戏需要退出则返回true，否则返回false.

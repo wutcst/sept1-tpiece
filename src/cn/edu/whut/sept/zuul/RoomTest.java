@@ -24,3 +24,4 @@ public class RoomTest {
         assertEquals(room2,room1.getExit("west"));
     }
 }
+

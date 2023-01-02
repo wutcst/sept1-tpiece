@@ -12,3 +12,4 @@ public class CommandWordsTest {
         assertEquals(true,commandwords.isCommand("back"));
     }
 }
+

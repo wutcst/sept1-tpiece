@@ -7,12 +7,19 @@ public class Parser
     private CommandWords commands;
     private Scanner reader;
 
+    /**
+     * 构造函数
+     */
     public Parser()
     {
         commands = new CommandWords();
         reader = new Scanner(System.in);
     }
 
+    /**
+     * 获取用户命令
+     * @return 返回用户指令
+     */
     public Command getCommand()
     {
         String inputLine;
@@ -39,6 +46,9 @@ public class Parser
         }
     }
 
+    /**
+     * 显示用户可执行的命令
+     */
     public void showCommands()
     {
         commands.showAll();

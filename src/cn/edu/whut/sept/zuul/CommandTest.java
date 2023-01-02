@@ -30,3 +30,4 @@ public class CommandTest {
         assertEquals(true,command.hasSecondWord());
     }
 }
+
